@@ -13,6 +13,7 @@ Route::prefix('shipment')->name('shipment.')->group(function () {
     Route::post('/rate', [UpsController::class, 'getRate'])->name('rate');
     Route::post('/create', [UpsController::class, 'createShipment'])->name('create');
     Route::get('/test-auth', [UpsController::class, 'testAuthentication'])->name('test-auth');
+    Route::get('/test-label-formats', [UpsController::class, 'testLabelFormats']);
 });
 
-// Route::redirect('/', '/shipment/form');
+Route::get('/check-storage', [UpsController::class, 'checkStorage'])->name('check-storage');

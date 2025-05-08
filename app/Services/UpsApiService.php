@@ -305,155 +305,159 @@ class UpsApiService
      */
     public function createShipment(array $data)
     {
-        $token = $this->getAccessToken();
+        try {
+            $token = $this->getAccessToken();
 
-        $serviceCode = $data['selected_service'] ?? '03'; // Default to UPS Ground if not specified
+            $serviceCode = $data['selected_service'] ?? '03'; // Default to UPS Ground if not specified
+            
+            // Debug logging
+            Log::info('Creating shipment with service code: ' . $serviceCode);
 
-        $body = [
-            "ShipmentRequest" => [
-                "Request" => [
-                    "RequestOption" => "validate",
-                    "SubVersion" => "1801",
-                    "TransactionReference" => [
-                        "CustomerContext" => "Creating Shipment and Label"
-                    ]
-                ],
-                "Shipment" => [
-                    "Description" => "Package from " . $data['shipper_name'],
-                    "Shipper" => [
-                        "Name" => $data['shipper_name'],
-                        "AttentionName" => $data['shipper_name'],
-                        "ShipperNumber" => $this->accountNumber,
-                        "Phone" => [
-                            "Number" => $data['shipper_phone'] ?? "5551234567"
-                        ],
-                        "Address" => [
-                            "AddressLine" => $data['shipper_address'],
-                            "City" => $data['shipper_city'],
-                            "StateProvinceCode" => $data['shipper_state'],
-                            "PostalCode" => $data['shipper_postal'],
-                            "CountryCode" => $data['shipper_country']
+            $body = [
+                "ShipmentRequest" => [
+                    "Request" => [
+                        "RequestOption" => "validate",
+                        "SubVersion" => "1801",
+                        "TransactionReference" => [
+                            "CustomerContext" => "Creating Shipment and Label"
                         ]
                     ],
-                    "ShipTo" => [
-                        "Name" => $data['recipient_name'],
-                        "AttentionName" => $data['recipient_name'],
-                        "Phone" => [
-                            "Number" => $data['recipient_phone'] ?? "5559876543"
-                        ],
-                        "Address" => [
-                            "AddressLine" => $data['recipient_address'],
-                            "City" => $data['recipient_city'],
-                            "StateProvinceCode" => $data['recipient_state'],
-                            "PostalCode" => $data['recipient_postal'],
-                            "CountryCode" => $data['recipient_country']
-                            // Removed ResidentialAddressIndicator to avoid residential surcharge
-                        ]
-                    ],
-                    "ShipFrom" => [
-                        "Name" => $data['shipper_name'],
-                        "AttentionName" => $data['shipper_name'],
-                        "Phone" => [
-                            "Number" => $data['shipper_phone'] ?? "5551234567"
-                        ],
-                        "Address" => [
-                            "AddressLine" => $data['shipper_address'],
-                            "City" => $data['shipper_city'],
-                            "StateProvinceCode" => $data['shipper_state'],
-                            "PostalCode" => $data['shipper_postal'],
-                            "CountryCode" => $data['shipper_country']
-                        ]
-                    ],
-                    "PaymentInformation" => [
-                        "ShipmentCharge" => [
-                            "Type" => "01", // Transportation charges
-                            "BillShipper" => [
-                                "AccountNumber" => $this->accountNumber
+                    "Shipment" => [
+                        "Description" => "Package from " . $data['shipper_name'],
+                        "Shipper" => [
+                            "Name" => $data['shipper_name'],
+                            "AttentionName" => $data['shipper_name'],
+                            "ShipperNumber" => $this->accountNumber,
+                            "Phone" => [
+                                "Number" => $data['shipper_phone'] ?? "5551234567"
+                            ],
+                            "Address" => [
+                                "AddressLine" => $data['shipper_address'],
+                                "City" => $data['shipper_city'],
+                                "StateProvinceCode" => $data['shipper_state'],
+                                "PostalCode" => $data['shipper_postal'],
+                                "CountryCode" => $data['shipper_country']
                             ]
-                        ]
-                    ],
-                    "Service" => [
-                        "Code" => $serviceCode,
-                        "Description" => $this->getServiceName($serviceCode)
-                    ],
-                    "Package" => [
-                        [
-                            "Description" => "Package",
-                            "Packaging" => [
-                                "Code" => "02", // Customer Supplied Package
-                                "Description" => "Package"
+                        ],
+                        "ShipTo" => [
+                            "Name" => $data['recipient_name'],
+                            "AttentionName" => $data['recipient_name'],
+                            "Phone" => [
+                                "Number" => $data['recipient_phone'] ?? "5559876543"
                             ],
-                            "Dimensions" => [
-                                "UnitOfMeasurement" => [
-                                    "Code" => "IN",
-                                    "Description" => "Inches"
+                            "Address" => [
+                                "AddressLine" => $data['recipient_address'],
+                                "City" => $data['recipient_city'],
+                                "StateProvinceCode" => $data['recipient_state'],
+                                "PostalCode" => $data['recipient_postal'],
+                                "CountryCode" => $data['recipient_country']
+                                // Removed ResidentialAddressIndicator to avoid residential surcharge
+                            ]
+                        ],
+                        "ShipFrom" => [
+                            "Name" => $data['shipper_name'],
+                            "AttentionName" => $data['shipper_name'],
+                            "Phone" => [
+                                "Number" => $data['shipper_phone'] ?? "5551234567"
+                            ],
+                            "Address" => [
+                                "AddressLine" => $data['shipper_address'],
+                                "City" => $data['shipper_city'],
+                                "StateProvinceCode" => $data['shipper_state'],
+                                "PostalCode" => $data['shipper_postal'],
+                                "CountryCode" => $data['shipper_country']
+                            ]
+                        ],
+                        "PaymentInformation" => [
+                            "ShipmentCharge" => [
+                                "Type" => "01", // Transportation charges
+                                "BillShipper" => [
+                                    "AccountNumber" => $this->accountNumber
+                                ]
+                            ]
+                        ],
+                        "Service" => [
+                            "Code" => $serviceCode,
+                            "Description" => $this->getServiceName($serviceCode)
+                        ],
+                        "Package" => [
+                            [
+                                "Description" => "Package",
+                                "Packaging" => [
+                                    "Code" => "02", // Customer Supplied Package
+                                    "Description" => "Package"
                                 ],
-                                "Length" => $data['length'] ?? "4",
-                                "Width" => $data['width'] ?? "4",
-                                "Height" => $data['height'] ?? "4"
-                            ],
-                            "PackageWeight" => [
-                                "UnitOfMeasurement" => [
-                                    "Code" => "LBS",
-                                    "Description" => "Pounds"
+                                "Dimensions" => [
+                                    "UnitOfMeasurement" => [
+                                        "Code" => "IN",
+                                        "Description" => "Inches"
+                                    ],
+                                    "Length" => $data['length'] ?? "4",
+                                    "Width" => $data['width'] ?? "4",
+                                    "Height" => $data['height'] ?? "4"
                                 ],
-                                "Weight" => $data['weight'] ?? "5"
-                            ],
-                            "PackageServiceOptions" => []
-                        ]
+                                "PackageWeight" => [
+                                    "UnitOfMeasurement" => [
+                                        "Code" => "LBS",
+                                        "Description" => "Pounds"
+                                    ],
+                                    "Weight" => $data['weight'] ?? "5"
+                                ],
+                                "PackageServiceOptions" => []
+                            ]
+                        ],
+                        // Add rating options to get negotiated rates
+                        "ShipmentRatingOptions" => [
+                            "NegotiatedRatesIndicator" => "true"
+                        ],
+                        "ShipmentServiceOptions" => []
                     ],
-                    // Add rating options to get negotiated rates
-                    "ShipmentRatingOptions" => [
-                        "NegotiatedRatesIndicator" => "true"
-                    ],
-                    "ShipmentServiceOptions" => []
-                ],
-                "LabelSpecification" => [
-                    "LabelImageFormat" => [
-                        "Code" => "PDF", // PDF format
-                        "Description" => "PDF"
-                    ],
-                    "HTTPUserAgent" => "Mozilla/5.0"
+                    "LabelSpecification" => [
+                        "LabelImageFormat" => [
+                            "Code" => "GIF",
+                            "Description" => "GIF"
+                        ],
+                        "HTTPUserAgent" => "Mozilla/5.0"
+                    ]
                 ]
-            ]
-        ];
+            ];
 
-        $response = Http::withToken($token)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-                'transId' => uniqid(),
-                'transactionSrc' => 'testing',
-                'Host' => $this->hostHeader, // Add Host header
-            ])
-            ->post($this->baseUrl . '/api/shipments/v1/ship', $body);
+            $response = Http::withToken($token)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'transId' => uniqid(),
+                    'transactionSrc' => 'testing',
+                    'Host' => $this->hostHeader, // Add Host header
+                ])
+                ->post($this->baseUrl . '/api/shipments/v1/ship', $body);
 
-        if (!$response->successful()) {
-            Log::error('UPS Ship API Error: ' . $response->body());
-            throw new \Exception('Shipment creation failed: ' . $response->body());
+            if (!$response->successful()) {
+                Log::error('UPS Ship API Error: ' . $response->body());
+                throw new \Exception('Shipment creation failed: ' . $response->body());
+            }
+
+            $results = $response->json();
+            
+            $label = $results['ShipmentResponse']['ShipmentResults']['PackageResults']['ShippingLabel']['GraphicImage'];
+            $trackingNumber = $results['ShipmentResponse']['ShipmentResults']['PackageResults']['TrackingNumber'];
+            
+            $filename = 'label_' . $trackingNumber . '.gif';
+            $relativePath = 'labels/' . $filename;
+            
+            Storage::disk('public')->makeDirectory('labels', 0755, true, true);
+            Storage::disk('public')->put($relativePath, base64_decode($label));
+
+            return [
+                'label_url' => asset('storage/' . $relativePath),
+                'tracking_number' => $trackingNumber,
+                'service_code' => $serviceCode,
+                'service_name' => $this->getServiceName($serviceCode)
+            ];
+        } catch (\Exception $e) {
+            Log::error('UPS Shipment Creation Exception: ' . $e->getMessage());
+            Log::error('UPS Shipment Creation Exception Trace: ' . $e->getTraceAsString());
+            throw $e; // Re-throw to be caught by the controller
         }
-
-        $results = $response->json();
-        
-        // Extract label from response
-        $label = $results['ShipmentResponse']['ShipmentResults']['PackageResults']['ShippingLabel']['GraphicImage'];
-        $trackingNumber = $results['ShipmentResponse']['ShipmentResults']['PackageResults']['TrackingNumber'];
-        
-        // Save label as PDF
-        $filename = 'label_' . $trackingNumber . '.pdf';
-        $relativePath = 'labels/' . $filename;
-        
-        // Ensure the directory exists
-        Storage::disk('public')->makeDirectory('labels', 0755, true, true);
-        
-        // Store the base64 decoded label
-        Storage::disk('public')->put($relativePath, base64_decode($label));
-
-        return [
-            'label_url' => asset('storage/' . $relativePath),
-            'tracking_number' => $trackingNumber,
-            'service_code' => $serviceCode,
-            'service_name' => $this->getServiceName($serviceCode)
-        ];
     }
 
     /**
